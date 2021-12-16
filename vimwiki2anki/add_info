@@ -1,0 +1,11 @@
+#!/bin/bash
+#向指定范围的行尾添加附加信息的脚本,以中文感叹号作为分隔符号。
+filename=${1}
+begin=${2}
+end=${3}
+info=${4}
+#对指定范围内(两个block标题行之间)，匹配某一模式(有'+ '的无序列表项)的行添加对应block的信息(info)
+vim -E -s $filename <<-EOF
+    ${begin},${end}global/+\s/normal A！$info
+    wq
+EOF

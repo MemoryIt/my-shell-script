@@ -1,0 +1,72 @@
+#!/bin/bash
+#filename="demo.md"
+filename=${1}
+newfilename=${filename}.manki
+#echo $newfilename
+#复制内容到新文件，在新文件中进行操作
+cp $filename $newfilename
+#########################################
+#删除代码行
+#########################################
+#查找代码块范围
+str=$(grep -n "\`\`\`" $newfilename | cut -d: -f1)
+#把字符串截取为数组arr
+arr=(${str//,/})
+arrlength=${#arr[@]}
+numofcodeblocks=$[$arrlength/2]
+#echo $numofblocks
+#从后往前删除代码行
+for((i=$numofcodeblocks;i>0;i=i-1));do
+    #echo ${arr[($i-1)*2]}
+    #echo ${arr[($i-1)*2+1]}
+    #调用脚本delete_lines删除指定文件的指定范围行
+    #第一个参数是文件名、第二个参数是开始删除的行数、第三个是删除停止的行数。
+    bash delete_lines $newfilename ${arr[($i-1)*2]} ${arr[($i-1)*2+1]}
+done
+
+#########################################
+#查找标题
+#########################################
+#查找本节的标题信息
+headstr=$(grep -n "# /ch" $newfilename | cut -d/ -f2)$(grep -n "# /ch" $newfilename | cut -d/ -f3)
+#echo $headstr
+#查找所有block的标题信息
+blockstr=$(grep -n "## /bl" $newfilename | cut -d/ -f2)
+#存储块标题内容的数组
+blockheadarr=(${blockstr//,/})
+#echo $blockstr
+
+#查找block数量和标题所在的行
+blocklinestr=$(grep -n "## /bl" $newfilename | cut -d: -f1)
+#存储块标题位置的数组
+blocklinearr=(${blocklinestr//,/})
+numofblocks=${#blocklinearr[@]}
+#把文件总行数加入到数组的最后面
+blocklinearr[$numofblocks]=$(cat $newfilename | wc -l)
+#echo ${blocklinearr[$numofblocks]}
+#echo ${#blocklinearr[@]}
+########################################
+#把标题信息加入anki-note的行尾
+########################################
+for((j=0;j<$numofblocks;j=j+1));do
+    #echo "块$j标题为${blockheadarr[$j]}在第${blocklinearr[$j]}行"
+    info=${headstr}${blockheadarr[$j]}
+    bash add_info $newfilename ${blocklinearr[$j]} ${blocklinearr[$j+1]} $info
+done
+
+########################################
+#删除非anki-note行，对挖空标签进行替换
+#######################################
+#第一行：删除非anki-note行
+#第二行：删除anki-note行首的'+ '符号
+vim -E -s $newfilename <<-EOF
+    g!/+\s/d
+    g/+\s/normal 0d2l
+    %s/<\/c>/}}/g 
+    %s/<c1>/{{c1::/g 
+    %s/<c2>/{{c2::/g 
+    %s/<c3>/{{c3::/g 
+    %s/<c4>/{{c4::/g 
+    wq
+EOF
+

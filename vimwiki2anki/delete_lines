@@ -1,0 +1,9 @@
+#!/bin/bash
+#用于删除指定文件指定行的脚本
+filename=${1}
+begin=${2}
+end=${3}
+vim -E -s $filename <<-EOF
+    ${begin},${end}d
+    wq
+EOF
