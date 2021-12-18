@@ -27,8 +27,10 @@ done
 #########################################
 #查找标题
 #########################################
+#
+AnkiTagSeparetor="::"
 #查找本节的标题信息
-headstr=$(grep -n "# /ch" $newfilename | cut -d/ -f2)$(grep -n "# /ch" $newfilename | cut -d/ -f3)
+headstr=$(grep -n "# /ch" $newfilename | cut -d/ -f2)$AnkiTagSeparetor$(grep -n "# /ch" $newfilename | cut -d/ -f3)
 #echo $headstr
 #查找所有block的标题信息
 blockstr=$(grep -n "## /bl" $newfilename | cut -d/ -f2)
@@ -50,7 +52,7 @@ blocklinearr[$numofblocks]=$(cat $newfilename | wc -l)
 ########################################
 for((j=0;j<$numofblocks;j=j+1));do
     #echo "块$j标题为${blockheadarr[$j]}在第${blocklinearr[$j]}行"
-    info=${headstr}${blockheadarr[$j]}
+    info=${headstr}$AnkiTagSeparetor${blockheadarr[$j]}
     bash add_info $newfilename ${blocklinearr[$j]} ${blocklinearr[$j+1]} $info
 done
 
